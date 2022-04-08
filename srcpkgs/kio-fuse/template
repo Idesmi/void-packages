@@ -1,0 +1,30 @@
+# Template file for 'kio-fuse'
+pkgname=kio-fuse
+version=5.0.1
+revision=1
+build_style=cmake
+configure_args+="-DBUILD_TESTING=ON"
+make_check_args+="VERBOSE=1"
+hostmakedepends="extra-cmake-modules pkg-config"
+makedepends="qt5-devel kio-devel fuse3-devel"
+checkdepends="qt5-devel kio-extras dbus"
+short_desc="FUSE Interface for KIO"
+maintainer="Enrico Belleri <idesmi@protonmail.com>"
+license="GPL-3.0-or-later"
+homepage="https://invent.kde.org/system/kio-fuse"
+distfiles="${KDE_SITE}/${pkgname}/${version}/${pkgname}-${version}.tar.xz"
+checksum=66679a8bf68fe60e19f31449f4110d4cf822915b3d245af3c0cd0056081466dd
+
+do_check() {
+	ret=0
+	fusermount3 || ret=$?
+	if [ $ret -eq 126 ] ; then
+		exit 0
+	fi
+
+	echo -e '#!/bin/sh\numount $2' > fusermount3
+	chmod a+x fusermount3
+	export PATH=$PWD:$PATH
+
+	ninja -C build test
+}
